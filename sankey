@@ -1,75 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Sankey Diagram</title>
+  <meta charset="UTF-8">
+  <title>D3 Sankey</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
-  <style>
-    body { margin: 0; }
-    #sankey { width: 100vw; height: 100vh; }
-    .node rect { fill: #4e79a7; }
-    .link { fill: none; stroke: #ccc; stroke-opacity: 0.4; }
-  </style>
+  <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
 </head>
 <body>
-  <div id="sankey"></div>
+<svg width="600" height="400"></svg>
+<script>
+const { sankey, sankeyLinkHorizontal } = d3;
 
-  <script>
-    // ===== YOUR DATA =====
-    const data = {
-      nodes: [
-        {name: "Source A"}, {name: "Source B"}, 
-        {name: "Process"}, {name: "Output"}
-      ],
-      links: [
-        {source: 0, target: 2, value: 100},
-        {source: 1, target: 2, value: 50},
-        {source: 2, target: 3, value: 150}
-      ]
-    };
+const graph = {
+  nodes: [
+    { name: "A" },
+    { name: "B" },
+    { name: "C" },
+    { name: "D" }
+  ],
+  links: [
+    { source: 0, target: 1, value: 10 },
+    { source: 0, target: 2, value: 5 },
+    { source: 1, target: 3, value: 7 },
+    { source: 2, target: 3, value: 3 }
+  ]
+};
 
-    // ===== DIAGRAM CODE =====
-    const width = 800;
-    const height = 600;
-    const svg = d3.select("#sankey")
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height);
+const svg = d3.select("svg"),
+      width = +svg.attr("width"),
+      height = +svg.attr("height");
 
-    const { nodes, links } = d3.sankey()
-      .nodeWidth(15)
-      .nodePadding(10)
-      .extent([[1, 1], [width - 1, height - 1]])
-      (data);
+const sankeyLayout = sankey()
+  .nodeWidth(15)
+  .nodePadding(10)
+  .extent([[1, 1], [width - 1, height - 6]]);
 
-    // Draw links
-    svg.append("g")
-      .selectAll("path")
-      .data(links)
-      .join("path")
-      .attr("d", d3.sankeyLinkHorizontal())
-      .attr("stroke-width", d => Math.max(1, d.width));
+sankeyLayout(graph);
 
-    // Draw nodes
-    svg.append("g")
-      .selectAll("rect")
-      .data(nodes)
-      .join("rect")
-      .attr("x", d => d.x0)
-      .attr("y", d => d.y0)
-      .attr("height", d => d.y1 - d.y0)
-      .attr("width", d => d.x1 - d.x0);
+svg.append("g")
+  .selectAll("path")
+  .data(graph.links)
+  .join("path")
+    .attr("d", sankeyLinkHorizontal())
+    .attr("stroke", "#000")
+    .attr("stroke-width", d => Math.max(1, d.width))
+    .attr("fill", "none")
+    .attr("stroke-opacity", 0.5);
 
-    // Add labels
-    svg.append("g")
-      .selectAll("text")
-      .data(nodes)
-      .join("text")
-      .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
-      .attr("y", d => (d.y1 + d.y0) / 2)
-      .attr("dy", "0.35em")
-      .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
-      .text(d => d.name);
-  </script>
+const node = svg.append("g")
+  .selectAll("g")
+  .data(graph.nodes)
+  .join("g");
+
+node.append("rect")
+  .attr("x", d => d.x0)
+  .attr("y", d => d.y0)
+  .attr("height", d => d.y1 - d.y0)
+  .attr("width", d => d.x1 - d.x0)
+  .attr("fill", "#007acc");
+
+node.append("text")
+  .attr("x", d => d.x0 - 6)
+  .attr("y", d => (d.y1 + d.y0) / 2)
+  .attr("dy", "0.35em")
+  .attr("text-anchor", "end")
+  .text(d => d.name);
+</script>
 </body>
 </html>
